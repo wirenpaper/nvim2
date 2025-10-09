@@ -1,0 +1,4 @@
+plugin/
+colors/
+nvim-pack-lock.json
+.hook_files
