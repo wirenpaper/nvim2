@@ -1,4 +1,5 @@
 local theme = dofile(vim.fn.stdpath('config') .. '/theme.lua')
+vim.opt.termguicolors = false
 
 vim.g.mapleader = ','
 vim.g.localleader = ','
