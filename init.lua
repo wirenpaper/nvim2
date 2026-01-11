@@ -1,8 +1,10 @@
+local theme = dofile(vim.fn.stdpath('config') .. '/theme.lua')
+
 vim.g.mapleader = ','
 vim.g.localleader = ','
 
 --vim.cmd.colorscheme('dark')
-vim.cmd.colorscheme('light')
+vim.cmd.colorscheme(theme)
 
 -- Tab Completion Settings
 vim.opt.wildignorecase = true -- Makes tab completion for files/buffers case-insensitive
@@ -192,17 +194,17 @@ vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, { desc = 'Code action
 vim.keymap.set('n', 'gr', vim.lsp.buf.references, { desc = 'Find references' })
 
 
-vim.keymap.set('n', '<leader>hi', function()
-  local result = vim.treesitter.get_captures_at_cursor(0)
-  print(vim.inspect(result))
-  -- Also show the highlight group
-  local line = vim.fn.line('.')
-  local col = vim.fn.col('.')
-  local stack = vim.fn.synstack(line, col)
-  for _, id in ipairs(stack) do
-    print(vim.fn.synIDattr(id, 'name'))
-  end
-end, { desc = 'Show highlight group under cursor' })
+--vim.keymap.set('n', '<leader>hi', function()
+--  local result = vim.treesitter.get_captures_at_cursor(0)
+--  print(vim.inspect(result))
+--  -- Also show the highlight group
+--  local line = vim.fn.line('.')
+--  local col = vim.fn.col('.')
+--  local stack = vim.fn.synstack(line, col)
+--  for _, id in ipairs(stack) do
+--    print(vim.fn.synIDattr(id, 'name'))
+--  end
+--end, { desc = 'Show highlight group under cursor' })
 
 -- ==========================================================
 -- TREESITTER ACTIVATION
@@ -214,5 +216,35 @@ vim.api.nvim_set_hl(0, "@comment", { link = "Comment" })
 vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     pcall(vim.treesitter.start)
+  end,
+})
+
+-- ==========================================================
+-- THEME SWITCHER COMMAND (:Theme light / :Theme dark)
+-- ==========================================================
+vim.api.nvim_create_user_command('Theme', function(opts)
+  local mode = opts.args
+  local script_path = vim.fn.expand("~/.config/config-manager/theme.sh")
+
+  -- 1. Execute the shell script to update Ghostty and the theme.lua file
+  --    (We use vim.fn.system to run it in the background)
+  local output = vim.fn.system(script_path .. " " .. mode)
+
+  -- 2. Check if script failed
+  if vim.v.shell_error ~= 0 then
+    vim.notify("Theme Script Failed:\n" .. output, vim.log.levels.ERROR)
+    return
+  end
+
+  -- 3. HOT RELOAD: Force Neovim to apply the new colorscheme NOW
+  --    This bypasses the need to read the file, since we know what we just requested.
+  vim.cmd.colorscheme(mode)
+
+  print("System switched to " .. mode)
+end, {
+  nargs = 1,
+  -- Enable Tab Completion for "light" and "dark"
+  complete = function(ArgLead, CmdLine, CursorPos)
+    return { "light", "dark" }
   end,
 })
