@@ -1,12 +1,8 @@
 vim.g.mapleader = ','
 vim.g.localleader = ','
 
---vim.opt.laststatus = 0
-
---vim.opt.termguicolors = false
-
---vim.cmd("set background=dark")
-vim.cmd.colorscheme('dark')
+--vim.cmd.colorscheme('dark')
+vim.cmd.colorscheme('light')
 
 -- Tab Completion Settings
 vim.opt.wildignorecase = true -- Makes tab completion for files/buffers case-insensitive
@@ -60,7 +56,7 @@ vim.pack.add {
 	{ src = 'https://github.com/hrsh7th/cmp-nvim-lsp' },
 	{ src = 'https://github.com/hrsh7th/cmp-buffer' },
 	{ src = 'https://github.com/habamax/vim-habamax' },
-  { src = 'https://github.com/nvim-treesitter/nvim-treesitter', run = ':TSUpdate' },
+  -- { src = 'https://github.com/nvim-treesitter/nvim-treesitter', run = ':TSUpdate' },
   { src = 'https://github.com/EdenEast/nightfox.nvim' },
   { src = 'https://github.com/vim-scripts/a.vim' },
   { src = 'https://github.com/vivien/vim-linux-coding-style' },
@@ -152,10 +148,33 @@ vim.lsp.config.clangd = {
   filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
 }
 
+-- ==========================================================
+-- PYTHON CONFIG (System Binary)
+-- ==========================================================
+vim.lsp.config.basedpyright = {
+  -- We use the absolute path you just found to guarantee it runs
+  cmd = { "/etc/profiles/per-user/saifr/bin/basedpyright-langserver", "--stdio" },
+  
+  filetypes = { 'python' },
+  root_markers = { 'pyproject.toml', 'setup.py', '.git', 'requirements.txt' },
+  settings = {
+    basedpyright = {
+      analysis = {
+        typeCheckingMode = "standard",
+        autoSearchPaths = true,
+        useLibraryCodeForTypes = true,
+      }
+    }
+  }
+}
+
+-- Enable it
+vim.lsp.enable('basedpyright')
+
 -- Enable the server
-vim.lsp.enable('lua_ls')
-vim.lsp.enable('gleam')
-vim.lsp.enable('clangd')
+--vim.lsp.enable('lua_ls')
+--vim.lsp.enable('gleam')
+--vim.lsp.enable('clangd')
 
 -- Ensure .asm and .s files are recognized as 'asm' filetype
 vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
@@ -184,3 +203,16 @@ vim.keymap.set('n', '<leader>hi', function()
     print(vim.fn.synIDattr(id, 'name'))
   end
 end, { desc = 'Show highlight group under cursor' })
+
+-- ==========================================================
+-- TREESITTER ACTIVATION
+-- ==========================================================
+-- 1. Link the 'Comment' group so it turns RED (matches your colorscheme)
+vim.api.nvim_set_hl(0, "@comment", { link = "Comment" })
+
+-- 2. Force Treesitter to start for every file
+vim.api.nvim_create_autocmd("FileType", {
+  callback = function()
+    pcall(vim.treesitter.start)
+  end,
+})
